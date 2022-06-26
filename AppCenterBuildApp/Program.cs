@@ -78,7 +78,6 @@ namespace AppCenterBuildApp
                 };
                 await buildWorker.StartAsync();
                 Console.WriteLine($"{buildWorker.TargetBranchName} - build queued.");
-                break;
             }
         }
     }
