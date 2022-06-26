@@ -6,13 +6,17 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 
-namespace AppCenterBuildApp.Build
+namespace AppCenterBuildApp.BuildWorker
 {
-    internal class BuildWorker : IDisposable
+    /// <summary>
+    /// <inheritdoc/>
+    /// </summary>
+    internal class BuildTask : IDisposable
     {
         private readonly AppCenterApiClient client;
         private Timer timer = new Timer(3000);
         private BuildInfo currentBuildInfo;
+        private bool updatingBuildInfo = false;
 
         private bool building;
         /// <summary>
@@ -33,12 +37,12 @@ namespace AppCenterBuildApp.Build
         public AppInfo TargetApp => targetAppInfo;
 
         /// <summary>
-        /// 
+        /// Constructor
         /// </summary>
-        /// <param name="client"></param>
-        /// <param name="app"></param>
-        /// <param name="branchName"></param>
-        public BuildWorker(AppCenterApiClient client, AppInfo app, string branchName)
+        /// <param name="client">App Center API client instance</param>
+        /// <param name="app">Target app info</param>
+        /// <param name="branchName">Target branch name</param>
+        public BuildTask(AppCenterApiClient client, AppInfo app, string branchName)
         {
             this.client = client;
             targetAppInfo = app;
@@ -81,6 +85,11 @@ namespace AppCenterBuildApp.Build
         /// </summary>
         public event BuildStateChangedEventHandler StateChanged;
 
+        public void Dispose()
+        {
+            ResetCurrentBuildData();
+        }
+
         private void OnNewBuildInfoReceived(BuildInfo buildInfo)
         {
             BuildState prevBuildState = currentBuildInfo?.GetBuildState() ?? BuildState.None;
@@ -92,7 +101,7 @@ namespace AppCenterBuildApp.Build
             StateChanged?.Invoke(this, new BuildStateEventArgs(prevBuildState, buildInfo));
         }
 
-        private bool updatingBuildInfo = false;
+        
         private async Task UpdateCurrentBuildInfo()
         {
             if (!building || currentBuildInfo == null || updatingBuildInfo)
@@ -116,8 +125,6 @@ namespace AppCenterBuildApp.Build
             {
                 updatingBuildInfo = false;
             }
-
-
         }
 
         private void ResetCurrentBuildData()
@@ -132,13 +139,6 @@ namespace AppCenterBuildApp.Build
             await UpdateCurrentBuildInfo();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public void Dispose()
-        {
-            ResetCurrentBuildData();
-        }
     }
 
     /// <summary>
@@ -146,7 +146,7 @@ namespace AppCenterBuildApp.Build
     /// </summary>
     /// <param name="sender">Build worker</param>
     /// <param name="args">Event args</param>
-    internal delegate void BuildStateChangedEventHandler(BuildWorker sender, BuildStateEventArgs args);
+    internal delegate void BuildStateChangedEventHandler(BuildTask sender, BuildStateEventArgs args);
 
     internal class BuildStateEventArgs : EventArgs
     {

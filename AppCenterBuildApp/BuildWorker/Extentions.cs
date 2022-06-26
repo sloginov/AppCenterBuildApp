@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AppCenterBuildApp.Build
+namespace AppCenterBuildApp.BuildWorker
 {
     public static class BuildInfoExtentions
     {

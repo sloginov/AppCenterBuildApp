@@ -119,6 +119,7 @@ namespace AppCenterBuildApp.API
         /// <returns></returns>
         public async Task<BuildInfo> CreateBuildAsync(AppInfo appInfo, string branchName)
         {
+            //TODO: Consider cancellation of last build if it's running
             var response = await SendApiPostRequestAsync($"/apps/{appInfo.Owner.Name}/{appInfo.Name}/branches/{branchName}/builds");
             return JsonSerializer.Deserialize<BuildInfo>(response, ResponseJsonSerializerOptions);
         }

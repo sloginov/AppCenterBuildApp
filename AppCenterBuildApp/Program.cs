@@ -1,5 +1,5 @@
 ﻿using AppCenterBuildApp.API;
-using AppCenterBuildApp.Build;
+using AppCenterBuildApp.BuildWorker;
 using AppCenterBuildApp.Models;
 using Newtonsoft.Json;
 using System;
@@ -56,7 +56,7 @@ namespace AppCenterBuildApp
             Console.WriteLine($"App '{app.Name}' branch names received: {Environment.NewLine}{string.Join(", ", brancheNames)}");
             Console.WriteLine();
 
-            List<BuildWorker> buildWorkers = new List<BuildWorker>(from branchName in brancheNames select new BuildWorker(client, app, branchName));
+            List<BuildTask> buildWorkers = new List<BuildTask>(from branchName in brancheNames select new BuildTask(client, app, branchName));
             foreach (var buildWorker in buildWorkers)
             {
                 buildWorker.StateChanged += (sender, args) =>
@@ -78,6 +78,7 @@ namespace AppCenterBuildApp
                 };
                 await buildWorker.StartAsync();
                 Console.WriteLine($"{buildWorker.TargetBranchName} - build queued.");
+                break;
             }
         }
     }
