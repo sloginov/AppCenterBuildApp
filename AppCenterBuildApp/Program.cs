@@ -41,7 +41,7 @@ namespace AppCenterBuildApp
             AppCenterApiClient client = new AppCenterApiClient(inputData.ApiToken);
             Console.WriteLine("Retrieving apps...");
             var appList = await client.GetAppsAsync();
-            var app = appList.FirstOrDefault(app => app.Name == inputData.TargetAppName);
+            var app = appList.FirstOrDefault(app => string.Equals(app.Name, inputData.TargetAppName, StringComparison.InvariantCultureIgnoreCase));
             if (app == null)
             {
                 Console.WriteLine($"Target app with name '{inputData.TargetAppName}' not found!");
