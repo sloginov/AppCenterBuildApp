@@ -57,6 +57,8 @@ namespace AppCenterBuildApp
             Console.WriteLine();
 
             List<BuildTask> buildWorkers = new List<BuildTask>(from branchName in brancheNames select new BuildTask(client, app, branchName));
+
+            //TODO: Consider sequential starting of build tasts instead of parallel to avoid excess calls to API.
             foreach (var buildWorker in buildWorkers)
             {
                 buildWorker.StateChanged += (sender, args) =>
