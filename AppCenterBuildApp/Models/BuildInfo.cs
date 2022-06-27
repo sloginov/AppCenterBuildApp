@@ -1,6 +1,5 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
+using System.Text.Json.Serialization;
 
 namespace AppCenterBuildApp.Models
 {
@@ -42,12 +41,14 @@ namespace AppCenterBuildApp.Models
         /// <summary>
         /// The build status
         /// </summary>
-        public string Status { get; set; }
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public BuildStatus Status { get; set; }
 
         /// <summary>
         /// The build result
         /// </summary>
-        public string Result { get; set; }
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public BuildResult Result { get; set; }
 
 
         /// <summary>
@@ -59,40 +60,5 @@ namespace AppCenterBuildApp.Models
         /// The source SHA
         /// </summary>
         public string SourceVersion { get; set; }
-    }
-
-    /// <summary>
-    /// Build state
-    /// </summary>
-    public enum BuildState
-    {
-        /// <summary>
-        /// Undefined state
-        /// </summary>
-        None,
-        /// <summary>
-        /// Build not started
-        /// </summary>
-        NotStarted,
-        /// <summary>
-        /// /Build is in progress
-        /// </summary>
-        InProgress,
-        /// <summary>
-        /// Build is cancelling
-        /// </summary>
-        Cancelling,
-        /// <summary>
-        /// Build is completed successfuly
-        /// </summary>
-        Succeded,
-        /// <summary>
-        /// Build is cancelled by user
-        /// </summary>
-        Cancelled,
-        /// <summary>
-        /// Build is failed with error or cancelled
-        /// </summary>
-        Failed
     }
 }

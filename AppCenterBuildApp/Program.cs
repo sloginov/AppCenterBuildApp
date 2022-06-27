@@ -1,7 +1,5 @@
 ﻿using AppCenterBuildApp.API;
-using AppCenterBuildApp.BuildWorker;
 using AppCenterBuildApp.Models;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -48,38 +46,40 @@ namespace AppCenterBuildApp
                 return;
             }
 
-            Console.WriteLine($"Retrieving branch names for app '{app.Name}'...");
+            string appName = app.Name;
+            string ownerName = app.Owner.Name;
+
+            Console.WriteLine($"Retrieving branch names for app '{appName}'...");
 
             var branches = await client.GetBranchListAsync(app);
             var brancheNames = branches.Select(branch => branch.Branch.Name).ToList();
 
-            Console.WriteLine($"App '{app.Name}' branch names received: {Environment.NewLine}{string.Join(", ", brancheNames)}");
+            Console.WriteLine($"App '{appName}' branch names received: {Environment.NewLine}{string.Join(", ", brancheNames)}");
             Console.WriteLine();
 
-            List<BuildTask> buildWorkers = new List<BuildTask>(from branchName in brancheNames select new BuildTask(client, app, branchName));
+            List<BuildTask> buildWorkers = new List<BuildTask>(from branchName in brancheNames select new BuildTask(client, new BuildTaskOptions(ownerName, appName, branchName)));
 
-            //TODO: Consider sequential starting of build tasts instead of parallel to avoid excess calls to API.
             foreach (var buildWorker in buildWorkers)
             {
-                buildWorker.StateChanged += (sender, args) =>
+                var branchName = buildWorker.Options.BranchName;
+                Console.WriteLine($"{branchName} - starting build...");
+                try
                 {
-                    if (args.NewState == BuildState.InProgress)
-                        Console.WriteLine($"{buildWorker.TargetBranchName} - build started.");
-                    
-                    if (!args.NewState.IsCompletedState())
-                        return;
+                    var buildInfo = await buildWorker.BuildAsync();
 
-                    var buildInfo = args.BuildInfo;
-
+                    //TODO: Ensure buildInfo.StartTime and buildInfo.FinishTime have values
                     TimeSpan buildDuration = buildInfo.FinishTime.Value - buildInfo.StartTime.Value;
-                    string buildResultString = args.NewState == BuildState.Succeded ? "completed" : "failed";
-                    string buildLogLink = $"https://appcenter.ms/users/{sender.TargetApp.Owner.Name}/apps/{sender.TargetApp.Name}/build/branches/{sender.TargetBranchName}/builds/{buildInfo.Id}";
+                    string buildResultString = buildInfo.Result == BuildResult.Succeeded ? "completed" : "failed";
+                    string buildLogLink = $"https://appcenter.ms/users/{buildWorker.Options.OwnerName}/apps/{buildWorker.Options.AppName}/build/branches/{buildWorker.Options.BranchName}/builds/{buildInfo.Id}";
+
                     Console.WriteLine();
-                    Console.WriteLine($"{sender.TargetBranchName} {buildResultString} in {buildDuration.TotalSeconds:F0} seconds. Link to build logs: {buildLogLink}");
+                    Console.WriteLine($"{branchName} {buildResultString} in {buildDuration.TotalSeconds:F0} seconds. Link to build logs: {buildLogLink}");
                     Console.WriteLine();
-                };
-                await buildWorker.StartAsync();
-                Console.WriteLine($"{buildWorker.TargetBranchName} - build queued.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error during building branch {branchName} occurred: {ex.Message}");
+                }
             }
         }
     }

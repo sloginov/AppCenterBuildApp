@@ -2,20 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AppCenterBuildApp.BuildWorker
+namespace AppCenterBuildApp
 {
-    /// <summary>
-    /// Provides input data for build application via App Center
-    /// </summary>
-    internal interface IBuildInputDataProvider
-    {
-        /// <summary>
-        /// Get input data for build
-        /// </summary>
-        /// <returns></returns>
-        AppCenterBuildInputData GetAppCenterBuildInputData();
-    }
-
     internal class AppCenterBuildInputData
     {
         internal AppCenterBuildInputData(string apiToken, string targetAppName)
